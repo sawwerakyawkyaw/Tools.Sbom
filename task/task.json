@@ -1,0 +1,170 @@
+{
+  "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
+  "id": "D673396F-1E76-4D2D-AA90-B86B4C9A86C5",
+  "name": "tool-sbom-gen",
+  "friendlyName": "Generate SBOM",
+  "description": "Generate CycloneDX compatible Software Bill of Materials (SBOM) for Azure Devops repositories (currently only support for .NET projects using CycloneDX module for .NET).",
+  "helpMarkDown": "For help, please raise an issue on the [GitHub repository](https://github.com/sawwerakyawkyaw/Tools.Sbom/issues)",
+  "helpUrl": "https://github.com/sawwerakyawkyaw/Tools.Sbom/issues",
+  "category": "Utility",
+  "author": "Saw Wera Kyaw Kyaw",
+  "version": {
+    "Major": 1,
+    "Minor": 0,
+    "Patch": 0
+  },
+  "instanceNameFormat": "Generate SBOM: $(solutionFilePath)",
+  "groups": [
+    {
+      "name": "moreOptions",
+      "displayName": "More Options",
+      "isExpanded": false
+    }
+  ],
+  "inputs": [
+    {
+      "name": "solutionFilePath",
+      "type": "filePath",
+      "label": "Solution File Path",
+      "required": true,
+      "helpMarkDown": "The path to a .sln file or the path to a directory which will be recursively analyzed for packages.config files"
+    },
+    {
+      "name": "outputDirectory",
+      "type": "filePath",
+      "label": "Output Directory",
+      "defaultValue": "$(Build.ArtifactStagingDirectory)/Generated-SBOM",
+      "required": true,
+      "helpMarkDown": "Path to the directory to write the SBOM"
+    },
+    {
+      "name": "filename",
+      "type": "string",
+      "label": "Filename",
+      "defaultValue": "bom.json",
+      "required": true,
+      "helpMarkDown": "Optionally provide a filename for the SBOM (default: bom.json)"
+    },
+    {
+      "name": "outputFormat",
+      "type": "pickList",
+      "options": {
+        "xml": "xml",
+        "json": "json",
+        "unsafeJson": "unsafeJson"
+      },
+      "label": "SBOM output format",
+      "defaultValue": "json",
+      "required": true,
+      "helpMarkDown": "Select the SBOM output format: xml, json, or unsafeJson (default: json)"
+    },
+    {
+      "name": "disablePackageRestore",
+      "type": "boolean",
+      "label": "Disable Package Restore",
+      "defaultValue": false,
+      "required": false,
+      "helpMarkDown": "Disable automatic package restore during SBOM generation."
+    },
+    {
+      "name": "setVersion",
+      "type": "string",
+      "label": "Set Version",
+      "defaultValue": "0.0.0",
+      "required": false,
+      "helpMarkDown": "Override the default SBOM metadata component version (defaults to 0.0.0)"
+    },
+    {
+      "name": "setType",
+      "type": "pickList",
+      "label": "Set Type",
+      "options": {
+        "Application": "Application",
+        "Container": "Container",
+        "Data": "Data",
+        "Device": "Device",
+        "Device driver": "Device driver",
+        "File": "File",
+        "Firmware": "Firmware",
+        "Framework": "Framework",
+        "Library": "Library",
+        "Machine learning model": "Machine learning model",
+        "Null": "Null",
+        "Operating system": "Operating system",
+        "Platform": "Platform"
+      },
+      "defaultValue": "application",
+      "required": false,
+      "helpMarkDown": "Override the default SBOM metadata component type (defaults to application)"
+    },
+    {
+      "groupName": "moreOptions",
+      "name": "excludeDevDependencies",
+      "type": "boolean",
+      "label": "Exclude Development Dependencies",
+      "defaultValue": false,
+      "required": false,
+      "helpMarkDown": "Exclude development dependencies from the SBOM."
+    },
+    {
+      "groupName": "moreOptions",
+      "name": "excludeTestProjects",
+      "type": "boolean",
+      "label": "Exclude Test Projects",
+      "defaultValue": false,
+      "required": false,
+      "helpMarkDown": "Exclude test projects from the SBOM."
+    },
+    {
+      "groupName": "moreOptions",
+      "name": "excludeFilterList",
+      "type": "multiLine",
+      "label": "List of dependencies to exclude",
+      "defaultValue": "",
+      "required": false,
+      "helpMarkDown": "Add a comma-separated list of dependencies to exclude in form 'name1@version1,name2@version2'. Transitive dependencies will also be removed."
+    },
+    {
+      "groupName": "moreOptions",
+      "name": "enableGithubLicenses",
+      "type": "boolean",
+      "label": "Enables GitHub license resolution",
+      "defaultValue": false,
+      "required": false,
+      "helpMarkDown": "Enables GitHub license resolution. If set you also need to provide a GitHub username and personal access token."
+    },
+    {
+      "groupName": "moreOptions",
+      "name": "githubUsername",
+      "type": "string",
+      "label": "GitHub Username",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Provide a GitHub username for license resolution.",
+      "visibleRule": "enableGithubLicenses == true"
+    },
+    {
+      "groupName": "moreOptions",
+      "name": "githubToken",
+      "type": "string",
+      "label": "GitHub Personal Access Token",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Provide a GitHub personal access token for license resolution.",
+      "visibleRule": "enableGithubLicenses == true"
+    },
+    {
+      "name": "sbomProductName",
+      "type": "string",
+      "label": "Product Name",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Provide the SBOM product name from Interlynk."
+    }
+  ],
+  "execution": {
+    "Node20_1": {
+      "target": "index.js"
+    }
+  }
+}
