@@ -157,28 +157,43 @@ async function uploadSbom(): Promise<void> {
   form.append('0', fs.createReadStream(filePath)); // actual file
 
   try {
-    const resp = await axios.post(ENDPOINT, form, {
-      headers: {
-        ...form.getHeaders(),
-        authorization: `Bearer ${TOKEN}`,
-      },
-    });
+    if (TOKEN) {
+      const resp = await axios.post(ENDPOINT, form, {
+        headers: {
+          ...form.getHeaders(),
+          authorization: `Bearer ${TOKEN}`,
+        },
+      });
 
-    if (resp.data.errors?.length) {
-      tl.error(`GraphQL errors: ${JSON.stringify(resp.data.errors)}`);
+      if (resp.status == 200) {
+        const respJson = resp.data;
+        const errors = respJson?.data?.sbomUpload?.errors;
+
+        if (errors?.length) {
+          tl.setResult(tl.TaskResult.Failed, `Error uploading sbom: ${JSON.stringify(errors)}`);
+        } else {
+          tl.setResult(tl.TaskResult.Succeeded, 'SBOM uploaded successfully.');
+        }
+      } else {
+        tl.setResult(tl.TaskResult.Failed, `Upload failed with status ${resp.status}: ${resp.statusText}`);
+      }
     } else {
-      tl.debug(`Upload successfully!`);
+      tl.setResult(tl.TaskResult.Failed, 'INTERLYNK_SECURITY_TOKEN not provided; skipping upload');
     }
-  } catch (err: any) {
+
+  } catch (err: unknown) {
+    let msg: string;
+
     if (axios.isAxiosError(err)) {
-      tl.error(`Upload failed: ${err.response?.data || err.message}`);
+      msg = `Upload failed: ${err.response?.data || err.message}`;
     } else if (err instanceof Error) {
-      tl.error(`Upload failed: ${err.message}`);
+      msg = `Upload failed: ${err.message}`;
     } else {
-      tl.error(`Upload failed: ${String(err)}`);
+      msg = `Upload failed: ${String(err)}`;
     }
-  }
 
+    tl.setResult(tl.TaskResult.Failed, msg); // <-- mark task failed
+  }
 }
 
 async function run(): Promise<void> {
@@ -190,17 +205,6 @@ async function run(): Promise<void> {
     if (code !== 0) {
       throw new Error(`CycloneDX exited with code ${code}`);
     }
-
-    tl.debug('SBOM generated successfully.');
-    // Try upload if token provided
-    if (TOKEN) {
-      tl.debug('INTERLYNK_SECURITY_TOKEN present, attempting upload');
-      await uploadSbom();
-    } else {
-      tl.debug('INTERLYNK_SECURITY_TOKEN not provided; skipping upload');
-    }
-
-    tl.setResult(tl.TaskResult.Succeeded, 'SBOM successfully generated and uploaded to Interlynk Server.');
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     tl.error(msg);

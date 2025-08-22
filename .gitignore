@@ -140,3 +140,8 @@ vite.config.ts.timestamp-*
 
 # SBOM output directory
 generated-sbom/
+
+# index.js
+index.js
+
+.taskkey
