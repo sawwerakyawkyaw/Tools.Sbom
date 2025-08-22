@@ -6,41 +6,10 @@ import axios from "axios";
 const FormData = require("form-data");
 const fs = require("fs");
 
+import { installDotnetCycloneDX } from "./dotnet-cyclonedx/installer";
+
 const ENDPOINT = "https://api.interlynk.io/lynkapi";
 const TOKEN = process.env.INTERLYNK_SECURITY_TOKEN;
-
-// Installs the dotnet CycloneDX global tool if it's not present.
-// Assumption: the tool package id is `dotnet-cyclonedx` and the executable is `dotnet-cyclonedx`.
-async function installDotnetCycloneDX() {
-  // Ensure `dotnet` is available first
-  const dotnet = tl.which('dotnet', false);
-  if (!dotnet) {
-    throw new Error('`dotnet` CLI is not available on PATH. Please install .NET SDK.');
-  }
-
-  // Check if the CycloneDX tool is already available
-  const existing = tl.which('dotnet-CycloneDX', false);
-  if (existing) {
-    tl.debug(`Found dotnet-CycloneDX at ${existing}`);
-    return;
-  }
-
-  tl.debug('dotnet-CycloneDX not found, installing as a global tool');
-  const tr = new trm.ToolRunner('dotnet');
-  tr.arg(['tool', 'install', '--global', 'CycloneDX', '--version', '3.0.8']);
-
-  const rc = await tr.exec();
-  if (rc !== 0) {
-    throw new Error(`Failed to install CycloneDX (exit code ${rc})`);
-  }
-
-  // Verify installation
-  const installed = tl.which('dotnet-CycloneDX', false);
-  if (!installed) {
-    throw new Error('dotnet-CycloneDX installation finished but the executable was not found on PATH.');
-  }
-  tl.debug(`dotnet-CycloneDX installed at ${installed}`);
-}
 
 // Function to build args for dotnet-CycloneDX
 function buildArgsFromInputs(): string[] {

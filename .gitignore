@@ -143,5 +143,7 @@ generated-sbom/
 
 # index.js
 task/index.js
+dotnet-cyclonedx/installer.js
+dotnet-cyclonedx/buildArgsFromInput.ts
 
 task/.taskkey

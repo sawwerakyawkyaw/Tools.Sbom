@@ -154,6 +154,14 @@
       "visibleRule": "enableGithubLicenses == true"
     },
     {
+      "name": "interlynkApiKey",
+      "type": "string",
+      "label": "Interlynk API Key",
+      "defaultValue": "",
+      "required": true,
+      "helpMarkDown": "Provide the Interlynk API key."
+    },
+    {
       "name": "sbomProductName",
       "type": "string",
       "label": "Product Name",
