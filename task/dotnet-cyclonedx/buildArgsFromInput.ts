@@ -1,10 +1,3 @@
-const tl = require('azure-pipelines-task-lib/task');
-
-import * as path from "path";
-import * as fs from "fs";
-
-type OutputFormat = "json" | "xml" | "unsafeJson";
-
 /**
  * Build arguments for the `dotnet-CycloneDX` CLI from task inputs.
  * - Validates required inputs
@@ -12,6 +5,13 @@ type OutputFormat = "json" | "xml" | "unsafeJson";
  * - Masks secrets (GitHub token) from logs
  * - Avoids logging sensitive values
  */
+
+import * as tl from "azure-pipelines-task-lib/task";
+import * as path from "path";
+import * as fs from "fs";
+
+type OutputFormat = "json" | "xml" | "unsafeJson";
+
 export async function buildArgsFromInputs(): Promise<string[]> {
   const args: string[] = [];
 

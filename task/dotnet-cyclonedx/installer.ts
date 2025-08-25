@@ -1,7 +1,3 @@
-import * as os from "os";
-import * as path from "path";
-import * as tl from "azure-pipelines-task-lib/task";
-
 /**
  * Installs the CycloneDX .NET global tool if not already present.
  * - Verifies `dotnet` availability
@@ -9,6 +5,11 @@ import * as tl from "azure-pipelines-task-lib/task";
  * - Ensures ~/.dotnet/tools is on PATH
  * - Pinned version by default, override via parameter
  */
+
+import * as os from "os";
+import * as path from "path";
+import * as tl from "azure-pipelines-task-lib/task";
+
 export async function installDotnetCycloneDX(version: string = "3.0.8"): Promise<void> {
   // 1) Ensure dotnet is available first
   const dotnetPath = tl.which("dotnet", false);

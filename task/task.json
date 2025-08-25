@@ -168,6 +168,27 @@
       "defaultValue": "",
       "required": true,
       "helpMarkDown": "Provide the SBOM product name from Interlynk."
+    },
+    {
+      "name": "sbomEnvironmentName",
+      "type": "pickList",
+      "options": {
+        "default": "default",
+        "development": "development",
+        "production": "production"
+      },
+      "label": "Environment Name",
+      "defaultValue": "default",
+      "required": true,
+      "helpMarkDown": "Provide the SBOM environment name from Interlynk."
+    },
+    {
+      "name": "includeVulns",
+      "type": "boolean",
+      "label": "Include Vulnerabilities",
+      "defaultValue": true,
+      "required": false,
+      "helpMarkDown": "Include vulnerabilities in the SBOM."
     }
   ],
   "execution": {

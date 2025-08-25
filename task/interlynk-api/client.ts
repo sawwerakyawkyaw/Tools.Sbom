@@ -1,3 +1,12 @@
+/**
+ * Interlynk API client for uploading SBOMs via GraphQL mutation.
+ *
+ * - Reads required and optional task inputs
+ * - Normalizes filename and output format
+ * - Handles file existence and error reporting
+ * - Uploads SBOM file using multipart GraphQL request
+ * - Handles and logs API/server errors, masking sensitive data
+ */
 import * as tl from 'azure-pipelines-task-lib/task';
 import * as path from "path";
 import * as fs from "fs";
@@ -5,12 +14,15 @@ import axios, { AxiosError } from "axios";
 const FormData = require("form-data");
 import { normalizeFilenameForFormat } from "../utils/helpers";
 import { SBOM_UPLOAD } from "./mutations";
+import { SBOM_DOWNLOAD_NEW } from "./queries";
 
 const ENDPOINT = "https://api.interlynk.io/lynkapi";
+const TOKEN = tl.getInput('interlynkApiKey', true);
+
 type OutputFormat = "json" | "xml" | "unsafeJson";
 
 export async function uploadSbom(): Promise<void> {
-  const TOKEN = tl.getInput('interlynkApiKey', true);
+
   const outputDirectory = tl.getPathInput('outputDirectory', true, false)!;
   const rawFilename = (tl.getInput("filename", false) || "bom.json").trim();
   const outputFormat = (tl.getInput("outputFormat", false) as OutputFormat) || "json";
@@ -128,5 +140,95 @@ export async function uploadSbom(): Promise<void> {
     // Non-Axios error
     const msg = err instanceof Error ? err.message : String(err);
     tl.setResult(tl.TaskResult.Failed, `Unexpected error: ${msg}`);
+  }
+}
+
+export async function downloadSBOM(filePath: string): Promise<void> {
+  const projectGroupName = tl.getInput("sbomProductName", true)!;
+  const projectName = tl.getInput("sbomEnvironmentName", true)!;
+  const versionName = tl.getInput("setVersion", true)!;
+  // includeVulns input comes in as "true" or "false" (string)
+const includeVulnsInput = tl.getInput("includeVulns", true);
+
+// Convert safely into a boolean OR undefined if not provided
+let includeVulns: boolean | undefined = undefined;
+if (includeVulnsInput !== undefined) {
+  includeVulns = includeVulnsInput.toLowerCase() === "true";
+}
+
+
+  if (!TOKEN) {
+    tl.setResult(tl.TaskResult.Failed, "INTERLYNK_SECURITY_TOKEN not provided; skipping download");
+    return;
+  }
+  if (!ENDPOINT) {
+    tl.setResult(tl.TaskResult.Failed, "GraphQL ENDPOINT not configured");
+    return;
+  }
+
+  // Only the four vars you care about:
+  const variables = {
+    projectName: projectName.trim().toLowerCase(),
+    projectGroupName: projectGroupName.trim(),
+    versionName: versionName.trim().toLowerCase(),
+    includeVulns: includeVulns,
+    // All other parameters are intentionally omitted
+  };
+
+  tl.debug(`Downloading SBOM with variables: ${JSON.stringify(variables)}`);
+
+  try {
+    const resp = await axios.post(
+      ENDPOINT,
+      {
+        operationName: "downloadSbom",
+        query: SBOM_DOWNLOAD_NEW,
+        variables,
+      },
+      {
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${TOKEN}`,
+        }
+      }
+    );
+
+    if (resp.data.errors?.length) {
+      tl.setResult(
+        tl.TaskResult.Failed,
+        `GraphQL errors: ${JSON.stringify(resp.data.errors)}`
+      );
+      return;
+    }
+
+    const dl = resp.data?.data?.sbom?.download;
+    if (!dl?.content) {
+      tl.setResult(tl.TaskResult.Failed, "Download content is missing.");
+      return;
+    }
+
+    const filename = dl.filename || "sbom_download.json";
+    const buffer = Buffer.from(dl.content, "base64");
+    const fullFilePath = path.join(filePath, filename);
+    fs.writeFileSync(fullFilePath, buffer);
+
+    tl.setResult(
+      tl.TaskResult.Succeeded,
+      `Saved file ${filename} (contentType: ${dl.contentType})`
+    );
+  } catch (err: unknown) {
+    if (axios.isAxiosError(err)) {
+      tl.error(
+        `Request failed: ${err.response?.status} ${err.response?.statusText}`
+      );
+      tl.setResult(
+        tl.TaskResult.Failed,
+        `Details: ${JSON.stringify(err.response?.data) || err.message}`
+      );
+    } else if (err instanceof Error) {
+      tl.setResult(tl.TaskResult.Failed, err.message);
+    } else {
+      tl.setResult(tl.TaskResult.Failed, String(err));
+    }
   }
 }
