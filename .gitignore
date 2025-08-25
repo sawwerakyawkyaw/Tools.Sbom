@@ -147,5 +147,6 @@ task/dotnet-cyclonedx/installer.js
 task/dotnet-cyclonedx/buildArgsFromInput.js
 task/interlynk-api/client.js
 task/interlynk-api/mutations.js
+task/utils/helpers.js
 
 task/.taskkey
