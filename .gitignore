@@ -141,9 +141,11 @@ vite.config.ts.timestamp-*
 # SBOM output directory
 generated-sbom/
 
-# index.js
+# dist
 task/index.js
-dotnet-cyclonedx/installer.js
-dotnet-cyclonedx/buildArgsFromInput.ts
+task/dotnet-cyclonedx/installer.js
+task/dotnet-cyclonedx/buildArgsFromInput.js
+task/interlynk-api/client.js
+task/interlynk-api/mutations.js
 
 task/.taskkey
