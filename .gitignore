@@ -141,6 +141,7 @@ vite.config.ts.timestamp-*
 # SBOM output directory
 generated-sbom/
 processed-sbom/
+SBOMS/
 
 # dist
 task/index.js
