@@ -161,7 +161,6 @@ export async function downloadSBOM(): Promise<string | undefined> {
     includeVulns = includeVulnsInput.toLowerCase() === "true";
   }
 
-
   if (!TOKEN) {
     tl.setResult(tl.TaskResult.Failed, "INTERLYNK_SECURITY_TOKEN not provided; skipping download");
     return undefined;
@@ -182,63 +181,63 @@ export async function downloadSBOM(): Promise<string | undefined> {
 
   tl.debug(`Downloading SBOM with variables: ${JSON.stringify(variables)}`);
 
-  try {
-    const resp = await axios.post(
-      ENDPOINT,
-      {
-        operationName: "downloadSbom",
-        query: SBOM_DOWNLOAD_NEW,
-        variables,
-      },
-      {
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${TOKEN}`,
+  const attempts = 5; // retry count
+  const delayMs = 10000;
+
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const resp = await axios.post(
+        ENDPOINT,
+        {
+          operationName: "downloadSbom",
+          query: SBOM_DOWNLOAD_NEW,
+          variables,
+        },
+        {
+          headers: {
+            "content-type": "application/json",
+            authorization: `Bearer ${TOKEN}`,
+          },
         }
+      );
+
+      if (resp.data.errors?.length) {
+        tl.warning(`Attempt ${i + 1}: GraphQL errors: ${JSON.stringify(resp.data.errors)}`);
+      } else {
+        const dl = resp.data?.data?.sbom?.download;
+        if (dl?.content) {
+          const buffer = Buffer.from(dl.content, "base64");
+          const fullFilePath = path.join(outputDirectory, interlynkDownloadFilename);
+          fs.writeFileSync(fullFilePath, buffer);
+
+          tl.setResult(
+            tl.TaskResult.Succeeded,
+            `Saved file ${interlynkDownloadFilename} (contentType: ${dl.contentType})`
+          );
+          return fullFilePath;
+        }
+        tl.warning(`Attempt ${i + 1}: Download content is missing.`);
       }
-    );
-
-    if (resp.data.errors?.length) {
-      tl.setResult(
-        tl.TaskResult.Failed,
-        `GraphQL errors: ${JSON.stringify(resp.data.errors)}`
-      );
-      return undefined;
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        tl.warning(
+          `Attempt ${i + 1} failed: ${err.response?.status} ${err.response?.statusText} - ${JSON.stringify(err.response?.data) || err.message
+          }`
+        );
+      } else {
+        tl.warning(`Attempt ${i + 1} failed: ${String(err)}`);
+      }
     }
 
-    const dl = resp.data?.data?.sbom?.download;
-    if (!dl?.content) {
-      tl.setResult(tl.TaskResult.Failed, "Download content is missing.");
-      return undefined;
-    }
-
-    const buffer = Buffer.from(dl.content, "base64");
-    const fullFilePath = path.join(outputDirectory, interlynkDownloadFilename);
-    fs.writeFileSync(fullFilePath, buffer);
-
-    tl.setResult(
-      tl.TaskResult.Succeeded,
-      `Saved file ${interlynkDownloadFilename} (contentType: ${dl.contentType})`
-    );
-
-    // Return the saved file path so callers can consume it
-    return fullFilePath;
-  } catch (err: unknown) {
-    if (axios.isAxiosError(err)) {
-      tl.error(
-        `Request failed: ${err.response?.status} ${err.response?.statusText}`
-      );
-      tl.setResult(
-        tl.TaskResult.Failed,
-        `Details: ${JSON.stringify(err.response?.data) || err.message}`
-      );
-      return undefined;
-    } else if (err instanceof Error) {
-      tl.setResult(tl.TaskResult.Failed, err.message);
-      return undefined;
-    } else {
-      tl.setResult(tl.TaskResult.Failed, String(err));
-      return undefined;
+    // If not the last attempt, wait before retry
+    if (i < attempts - 1) {
+      await new Promise(res => setTimeout(res, delayMs));
     }
   }
+
+  tl.setResult(
+    tl.TaskResult.Failed,
+    `DownloadSBOM failed after ${attempts} attempts. SBOM may not be indexed yet.`
+  );
+  return undefined;
 }
