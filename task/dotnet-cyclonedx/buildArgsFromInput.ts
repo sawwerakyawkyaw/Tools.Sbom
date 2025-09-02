@@ -9,6 +9,7 @@
 import * as tl from "azure-pipelines-task-lib/task";
 import * as path from "path";
 import * as fs from "fs";
+import { normalizeFilenameForFormat } from "../utils/helpers";
 
 type OutputFormat = "json" | "xml" | "unsafeJson";
 
@@ -124,24 +125,4 @@ export async function buildArgsFromInputs(): Promise<string[]> {
   }
 
   return args;
-}
-
-/** Ensure filename extension matches the chosen output format. */
-export function normalizeFilenameForFormat(filename: string, format: OutputFormat): string {
-  let base = filename;
-  const ext = path.extname(filename).toLowerCase();
-
-  // Strip known extensions to reapply the correct one
-  if (ext === ".json" || ext === ".xml") {
-    base = filename.slice(0, -ext.length);
-  }
-
-  switch (format) {
-    case "xml":
-      return `${base}.xml`;
-    case "json":
-    case "unsafeJson":
-    default:
-      return `${base}.json`;
-  }
 }

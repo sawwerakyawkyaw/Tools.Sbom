@@ -4,7 +4,11 @@ const path = require('path');
 type OutputFormat = "json" | "xml" | "unsafeJson";
 
 /** Ensure filename extension matches the chosen output format. */
-export function normalizeFilenameForFormat(filename: string, format: OutputFormat): string {
+export function normalizeFilenameForFormat(
+  filename: string,
+  format: OutputFormat,
+  type?: string
+): string {
   let base = filename;
   const ext = path.extname(filename).toLowerCase();
 
@@ -13,13 +17,14 @@ export function normalizeFilenameForFormat(filename: string, format: OutputForma
     base = filename.slice(0, -ext.length);
   }
 
-  switch (format) {
-    case "xml":
-      return `${base}.xml`;
-    case "json":
-    case "unsafeJson":
-    default:
-      return `${base}.json`;
+  if (type) {
+    // When a type is provided (e.g. "processed"), always append the
+    // processed suffix and choose the correct extension based on format.
+    const outExt = format === "xml" ? "xml" : "json";
+    return `${base}-(interlynk-processed-sbom).${outExt}`;
+  } else {
+    const outExt = format === "xml" ? "xml" : "json";
+    return `${base}-(cyclonedx-tool-generated-sbom).${outExt}`;
   }
 }
 
@@ -40,5 +45,7 @@ export async function checkVulnerabilities(filePath: string): Promise<void> {
     }
   } catch (err) {
     tl.error(`Error reading or parsing JSON file: ${err instanceof Error ? err.message : String(err)}`);
+    tl.setResult(tl.TaskResult.Failed, "Failed to check vulnerabilities.");
   }
 }
+

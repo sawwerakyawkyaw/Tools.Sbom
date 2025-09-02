@@ -143,27 +143,32 @@ export async function uploadSbom(): Promise<void> {
   }
 }
 
-export async function downloadSBOM(filePath: string): Promise<void> {
+export async function downloadSBOM(): Promise<string | undefined> {
   const projectGroupName = tl.getInput("sbomProductName", true)!;
   const projectName = tl.getInput("sbomEnvironmentName", true)!;
   const versionName = tl.getInput("setVersion", true)!;
-  // includeVulns input comes in as "true" or "false" (string)
-const includeVulnsInput = tl.getInput("includeVulns", true);
+  const includeVulnsInput = tl.getInput("includeVulns", true);
 
-// Convert safely into a boolean OR undefined if not provided
-let includeVulns: boolean | undefined = undefined;
-if (includeVulnsInput !== undefined) {
-  includeVulns = includeVulnsInput.toLowerCase() === "true";
-}
+  const rawFilename = (tl.getInput("filename", false) || "bom.json").trim();
+  const outputFormat = (tl.getInput("outputFormat", false) as OutputFormat) || "json";
+  const interlynkDownloadFilename = normalizeFilenameForFormat(rawFilename, outputFormat, "processed");
+
+  const outputDirectory = tl.getPathInput('outputDirectory', true, false)!;
+
+  // Convert safely into a boolean OR undefined if not provided
+  let includeVulns: boolean | undefined = undefined;
+  if (includeVulnsInput !== undefined) {
+    includeVulns = includeVulnsInput.toLowerCase() === "true";
+  }
 
 
   if (!TOKEN) {
     tl.setResult(tl.TaskResult.Failed, "INTERLYNK_SECURITY_TOKEN not provided; skipping download");
-    return;
+    return undefined;
   }
   if (!ENDPOINT) {
     tl.setResult(tl.TaskResult.Failed, "GraphQL ENDPOINT not configured");
-    return;
+    return undefined;
   }
 
   // Only the four vars you care about:
@@ -198,24 +203,26 @@ if (includeVulnsInput !== undefined) {
         tl.TaskResult.Failed,
         `GraphQL errors: ${JSON.stringify(resp.data.errors)}`
       );
-      return;
+      return undefined;
     }
 
     const dl = resp.data?.data?.sbom?.download;
     if (!dl?.content) {
       tl.setResult(tl.TaskResult.Failed, "Download content is missing.");
-      return;
+      return undefined;
     }
 
-    const filename = dl.filename || "sbom_download.json";
     const buffer = Buffer.from(dl.content, "base64");
-    const fullFilePath = path.join(filePath, filename);
+    const fullFilePath = path.join(outputDirectory, interlynkDownloadFilename);
     fs.writeFileSync(fullFilePath, buffer);
 
     tl.setResult(
       tl.TaskResult.Succeeded,
-      `Saved file ${filename} (contentType: ${dl.contentType})`
+      `Saved file ${interlynkDownloadFilename} (contentType: ${dl.contentType})`
     );
+
+    // Return the saved file path so callers can consume it
+    return fullFilePath;
   } catch (err: unknown) {
     if (axios.isAxiosError(err)) {
       tl.error(
@@ -225,10 +232,13 @@ if (includeVulnsInput !== undefined) {
         tl.TaskResult.Failed,
         `Details: ${JSON.stringify(err.response?.data) || err.message}`
       );
+      return undefined;
     } else if (err instanceof Error) {
       tl.setResult(tl.TaskResult.Failed, err.message);
+      return undefined;
     } else {
       tl.setResult(tl.TaskResult.Failed, String(err));
+      return undefined;
     }
   }
 }
