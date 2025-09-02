@@ -1,9 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/Microsoft/azure-pipelines-task-lib/master/tasks.schema.json",
   "id": "D673396F-1E76-4D2D-AA90-B86B4C9A86C5",
-  "name": "tool-sbom-gen",
+  "name": "sbom-tool",
   "friendlyName": "Generate SBOM",
-  "description": "Generate CycloneDX compatible Software Bill of Materials (SBOM) for Azure Devops repositories (currently only support for .NET projects using CycloneDX module for .NET).",
+  "description": "Generate CycloneDX compatible Software Bill of Materials (SBOM) for Azure Devops repositories (currently only support for .NET projects using CycloneDX module for .NET) and automatically uploads the sbom to Interlynk platform and reads for vulnerabilities.",
   "helpMarkDown": "For help, please raise an issue on the [GitHub repository](https://github.com/sawwerakyawkyaw/Tools.Sbom/issues)",
   "helpUrl": "https://github.com/sawwerakyawkyaw/Tools.Sbom/issues",
   "category": "Utility",
@@ -157,7 +157,7 @@
       "name": "interlynkApiKey",
       "type": "string",
       "label": "Interlynk API Key",
-      "defaultValue": "",
+      "defaultValue": "$(INTERLYNK_SECURITY_TOKEN)",
       "required": true,
       "helpMarkDown": "Provide the Interlynk API key."
     },
