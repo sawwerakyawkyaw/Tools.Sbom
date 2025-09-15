@@ -1,7 +1,9 @@
+/** Main entry point for the sbom-tool task. */
+
 import * as tl from 'azure-pipelines-task-lib/task';
 import { installDotnetCycloneDX } from "./dotnet-cyclonedx/installer";
 import { buildArgsFromInputs } from "./dotnet-cyclonedx/buildArgsFromInput";
-import {uploadSbom, downloadSBOM } from "./interlynk-api/client";
+import { uploadSbom, downloadSBOM } from "./interlynk-api/client";
 import { checkVulnerabilities } from './utils/helpers';
 
 async function run(): Promise<void> {

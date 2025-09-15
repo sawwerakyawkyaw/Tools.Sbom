@@ -1,6 +1,5 @@
 /**
  * Interlynk API client for uploading SBOMs via GraphQL mutation.
- *
  * - Reads required and optional task inputs
  * - Normalizes filename and output format
  * - Handles file existence and error reporting
@@ -202,7 +201,7 @@ export async function downloadSBOM(): Promise<string | undefined> {
       );
 
       if (resp.data.errors?.length) {
-        tl.warning(`Attempt ${i + 1}: GraphQL errors: ${JSON.stringify(resp.data.errors)}`);
+        tl.debug(`Attempt ${i + 1}: GraphQL errors: ${JSON.stringify(resp.data.errors)}`);
       } else {
         const dl = resp.data?.data?.sbom?.download;
         if (dl?.content) {
@@ -216,16 +215,16 @@ export async function downloadSBOM(): Promise<string | undefined> {
           );
           return fullFilePath;
         }
-        tl.warning(`Attempt ${i + 1}: Download content is missing.`);
+        tl.debug(`Attempt ${i + 1}: Download content is missing.`);
       }
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        tl.warning(
+        tl.debug(
           `Attempt ${i + 1} failed: ${err.response?.status} ${err.response?.statusText} - ${JSON.stringify(err.response?.data) || err.message
           }`
         );
       } else {
-        tl.warning(`Attempt ${i + 1} failed: ${String(err)}`);
+        tl.debug(`Attempt ${i + 1} failed: ${String(err)}`);
       }
     }
 
