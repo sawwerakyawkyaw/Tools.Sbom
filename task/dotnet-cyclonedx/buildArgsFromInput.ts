@@ -90,7 +90,7 @@ export async function buildArgsFromInputs(): Promise<string[]> {
   if (excludeFilterList) {
     // Accept comma/space-separated; strip spaces for safety.
     const cleaned = excludeFilterList.replace(/\s+/g, "");
-    if (cleaned) args.push("--exclude", cleaned);
+    if (cleaned) args.push("--exclude-filter", cleaned);
   }
 
   // ----- GitHub license resolution (optional) -----
