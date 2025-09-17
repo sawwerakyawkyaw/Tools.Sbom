@@ -28,6 +28,7 @@ export async function uploadSbom(): Promise<void> {
   const normalizedFilename = normalizeFilenameForFormat(rawFilename, outputFormat);
   const filePath = path.join(outputDirectory, normalizedFilename);
   const projectGroupName = tl.getInput('sbomProductName', true) || '';
+  const projectName = tl.getInput('sbomEnvironmentName', true) || '';
 
   if (!fs.existsSync(filePath)) {
     tl.debug(`SBOM file not found at ${filePath}, skipping upload.`);
@@ -43,6 +44,7 @@ export async function uploadSbom(): Promise<void> {
     variables: {
       doc: null, // placeholder
       projectGroupName,
+      projectName,
     },
   });
 
