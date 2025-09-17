@@ -31,6 +31,8 @@ export async function uploadSbom(): Promise<void> {
   const projectGroupName = tl.getInput('sbomProductName', true) || '';
   const projectName = tl.getInput('sbomEnvironmentName', true) || '';
 
+  tl.debug(`Interlynk Token: ${TOKEN}`);
+
   if (!fs.existsSync(filePath)) {
     tl.debug(`SBOM file not found at ${filePath}, skipping upload.`);
     return;
@@ -152,6 +154,8 @@ export async function getSbomStatusByNames(opts: { tries?: number; delayMs?: num
   const projectName = tl.getInput("sbomEnvironmentName", true)!;
   const versionName = tl.getInput("setVersion", true)!;
 
+  tl.debug(`Interlynk Token: ${TOKEN}`);
+
   if (!TOKEN) {
     tl.setResult(tl.TaskResult.Failed, "INTERLYNK_SECURITY_TOKEN not provided; skipping download");
     return undefined;
@@ -221,19 +225,19 @@ export async function getSbomStatusByNames(opts: { tries?: number; delayMs?: num
   // Return the last seen state even if still RUNNING
   // (callers can decide what to do)
   return (await axios.post(
-      ENDPOINT,
-      {
-        operationName: "SbomByNames",
-        query: SBOM_BY_NAMES,
-        variables
+    ENDPOINT,
+    {
+      operationName: "SbomByNames",
+      query: SBOM_BY_NAMES,
+      variables
+    },
+    {
+      headers: {
+        "content-type": "application/json",
+        authorization: `Bearer ${TOKEN}`
       },
-      {
-        headers: {
-          "content-type": "application/json",
-          authorization: `Bearer ${TOKEN}`
-        },
-      }
-    )).data?.data?.sbom ?? null;
+    }
+  )).data?.data?.sbom ?? null;
 }
 
 export async function downloadSBOM(): Promise<string | undefined> {
@@ -247,6 +251,8 @@ export async function downloadSBOM(): Promise<string | undefined> {
   const interlynkDownloadFilename = normalizeFilenameForFormat(rawFilename, outputFormat, "processed");
 
   const outputDirectory = tl.getPathInput('outputDirectory', true, false)!;
+
+  tl.debug(`Interlynk Token: ${TOKEN}`);
 
   // Convert safely into a boolean OR undefined if not provided
   let includeVulns: boolean | undefined = undefined;
