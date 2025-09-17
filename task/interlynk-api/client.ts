@@ -169,7 +169,7 @@ export async function getSbomStatusByNames(opts: { tries?: number; delayMs?: num
   tl.debug(`versionName: ${versionName}`);
 
   if (!TOKEN) {
-    tl.setResult(tl.TaskResult.Failed, "INTERLYNK_SECURITY_TOKEN not provided; skipping download");
+    tl.setResult(tl.TaskResult.Failed, "INTERLYNK_SECURITY_TOKEN not provided; skip checking status");
     return undefined;
   }
   if (!ENDPOINT) {
@@ -182,6 +182,8 @@ export async function getSbomStatusByNames(opts: { tries?: number; delayMs?: num
     projectGroupName: projectGroupName.trim(),
     versionName: versionName.trim().toLowerCase()
   };
+
+  tl.debug(`variables: ${JSON.stringify(variables)}`);
 
   tl.debug(`Getting SBOM status with variables: ${JSON.stringify(variables)}`);
 
