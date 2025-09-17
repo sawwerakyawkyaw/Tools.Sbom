@@ -2,7 +2,7 @@
   "manifestVersion": 1,
   "id": "sbom-tool-cyclonedx-interlynk",
   "name": "Generate CycloneDX SBOM and Upload to Interlynk",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "publisher": "sawwerakyawkyaw",
   "targets": [{ "id": "Microsoft.VisualStudio.Services" }],
   "public": false,
