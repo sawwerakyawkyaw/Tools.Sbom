@@ -17,13 +17,14 @@ async function run(): Promise<void> {
       throw new Error(`CycloneDX exited with code ${code}`);
     }
     await uploadSbom();
+    await new Promise(resolve => setTimeout(resolve, 10000));
     await getSbomStatusByNames();
-    // const downloadedPath = await downloadSBOM();
-    // if (downloadedPath) {
-    //   await checkVulnerabilities(downloadedPath);
-    // } else {
-    //   throw new Error("Failed to download SBOM. Cannot check vulnerabilities.");
-    // }
+    const downloadedPath = await downloadSBOM();
+    if (downloadedPath) {
+      await checkVulnerabilities(downloadedPath);
+    } else {
+      throw new Error("Failed to download SBOM. Cannot check vulnerabilities.");
+    }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);
     tl.error(msg);
