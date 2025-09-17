@@ -13,12 +13,13 @@ import axios, { AxiosError } from "axios";
 const FormData = require("form-data");
 import { normalizeFilenameForFormat } from "../utils/helpers";
 import { SBOM_UPLOAD } from "./mutations";
-import { SBOM_DOWNLOAD_NEW } from "./queries";
+import { SBOM_BY_NAMES, SBOM_DOWNLOAD_NEW } from "./queries";
 
 const ENDPOINT = "https://api.interlynk.io/lynkapi";
 const TOKEN = tl.getInput('interlynkApiKey', true);
 
 type OutputFormat = "json" | "xml" | "unsafeJson";
+type RunStatus = "UNKNOWN" | "NOT_STARTED" | "IN_PROGRESS" | "FINISHED";
 
 export async function uploadSbom(): Promise<void> {
 
@@ -142,6 +143,97 @@ export async function uploadSbom(): Promise<void> {
     const msg = err instanceof Error ? err.message : String(err);
     tl.setResult(tl.TaskResult.Failed, `Unexpected error: ${msg}`);
   }
+}
+
+export async function getSbomStatusByNames(opts: { tries?: number; delayMs?: number } = {}
+): Promise<string | undefined> {
+
+  const projectGroupName = tl.getInput("sbomProductName", true)!;
+  const projectName = tl.getInput("sbomEnvironmentName", true)!;
+  const versionName = tl.getInput("setVersion", true)!;
+
+  if (!TOKEN) {
+    tl.setResult(tl.TaskResult.Failed, "INTERLYNK_SECURITY_TOKEN not provided; skipping download");
+    return undefined;
+  }
+  if (!ENDPOINT) {
+    tl.setResult(tl.TaskResult.Failed, "GraphQL ENDPOINT not configured");
+    return undefined;
+  }
+
+  const variables = {
+    projectName: projectName.trim().toLowerCase(),
+    projectGroupName: projectGroupName.trim(),
+    versionName: versionName.trim().toLowerCase()
+  };
+
+  tl.debug(`Getting SBOM status with variables: ${JSON.stringify(variables)}`);
+
+  const tries = opts.tries ?? 10;
+  const delayMs = opts.delayMs ?? 5000;
+
+  for (let i = 0; i < tries; i++) {
+    const resp = await axios.post(
+      ENDPOINT,
+      {
+        operationName: "SbomByNames",
+        query: SBOM_BY_NAMES,
+        variables
+      },
+      {
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${TOKEN}`
+        },
+      }
+    );
+
+    if (resp.data?.errors?.length) {
+      throw new Error(`GraphQL errors: ${JSON.stringify(resp.data.errors)}`);
+    }
+
+    const sbom = resp.data?.data?.sbom;
+    if (!sbom) {
+      tl.setResult(tl.TaskResult.Failed, "SBOM not found with the provided names");
+      return undefined;
+    }
+
+    const { automationRunStatus, policyRunStatus, vulnRunStatus } = sbom as {
+      automationRunStatus: RunStatus;
+      policyRunStatus: RunStatus;
+      vulnRunStatus: RunStatus;
+    };
+
+    tl.debug(`Attempt ${i + 1}: SBOM statuses - Automation: ${automationRunStatus}, Policy: ${policyRunStatus}, Vulnerability: ${vulnRunStatus}`);
+
+    // If all finished (or failed), stop polling early
+    const statuses = [automationRunStatus, policyRunStatus, vulnRunStatus];
+    if (statuses.every(s => s === "FINISHED")) {
+      return sbom;
+    }
+
+    // otherwise wait and poll again
+    if (i < tries - 1) {
+      await new Promise(r => setTimeout(r, delayMs));
+    }
+  }
+
+  // Return the last seen state even if still RUNNING
+  // (callers can decide what to do)
+  return (await axios.post(
+      ENDPOINT,
+      {
+        operationName: "SbomByNames",
+        query: SBOM_BY_NAMES,
+        variables
+      },
+      {
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${TOKEN}`
+        },
+      }
+    )).data?.data?.sbom ?? null;
 }
 
 export async function downloadSBOM(): Promise<string | undefined> {

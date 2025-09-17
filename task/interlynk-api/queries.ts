@@ -1,5 +1,17 @@
 /** GraphQL queries for the Interlynk API. */
 
+export const SBOM_BY_NAMES = `
+  query SbomByNames($projectGroupName: String!, $projectName: String!, $versionName: String!) {
+    sbom(projectGroupName: $projectGroupName, projectName: $projectName, versionName: $versionName) {
+      automationRunStatus
+      policyRunStatus
+      vulnRunStatus
+      id
+      updatedAt
+    }
+  }
+`;
+
 export const PRODUCTS_TOTAL_COUNT = /* GraphQL */ `
   query GetProductsCount($name: String, $enabled: Boolean) {
     organization {
