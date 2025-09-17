@@ -171,16 +171,11 @@
     },
     {
       "name": "sbomEnvironmentName",
-      "type": "pickList",
-      "options": {
-        "default": "default",
-        "development": "development",
-        "production": "production"
-      },
+      "type": "string",
       "label": "Environment Name",
       "defaultValue": "default",
       "required": true,
-      "helpMarkDown": "Provide the SBOM environment name from Interlynk."
+      "helpMarkDown": "Provide the SBOM environment name from Interlynk. Valid environments are default, development and production."
     },
     {
       "name": "includeVulns",
