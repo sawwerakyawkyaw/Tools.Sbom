@@ -292,14 +292,14 @@ export async function downloadSBOM(): Promise<string | undefined> {
     return undefined;
   }
 
-  // Only the four vars you care about:
   const variables = {
     projectName: projectName.trim().toLowerCase(),
     projectGroupName: projectGroupName.trim(),
     versionName: versionName.trim().toLowerCase(),
     includeVulns: includeVulns,
-    // All other parameters are intentionally omitted
   };
+
+  tl.debug(`variables: ${JSON.stringify(variables)}`);
 
   tl.debug(`Downloading SBOM with variables: ${JSON.stringify(variables)}`);
 
