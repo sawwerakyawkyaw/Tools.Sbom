@@ -50,6 +50,20 @@ export async function buildArgsFromInputs(): Promise<string[]> {
   const githubUsername = (tl.getInput("githubUsername", false) || "").trim();
   const githubToken = (tl.getInput("githubToken", false) || "").trim();
 
+  tl.debug(`solutionFilePath: ${solutionFilePath}`);
+  tl.debug(`outputDirectory: ${outputDirectory}`);
+  tl.debug(`rawFilename: ${rawFilename}`);
+  tl.debug(`outputFormat: ${outputFormat}`);
+  tl.debug(`disablePackageRestore: ${disablePackageRestore}`);
+  tl.debug(`setVersion: ${setVersion ? "***" : "(not set)"}`);
+  tl.debug(`setType: ${setType || "(not set)"}`);
+  tl.debug(`excludeDevDependencies: ${excludeDevDependencies}`);
+  tl.debug(`excludeTestProjects: ${excludeTestProjects}`);
+  tl.debug(`excludeFilterList: ${excludeFilterList || "(not set)"}`);
+  tl.debug(`enableGithubLicenses: ${enableGithubLicenses}`);
+  tl.debug(`githubUsername: ${githubUsername || "(not set)"}`);
+  tl.debug(`githubToken: ${githubToken ? "***" : "(not set)"}`);
+
   // ----- Normalize filename & extension to match format -----
   const normalizedFilename = normalizeFilenameForFormat(rawFilename, outputFormat);
   const outputPath = path.join(outputDirectory, normalizedFilename);

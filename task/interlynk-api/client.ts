@@ -32,6 +32,14 @@ export async function uploadSbom(): Promise<void> {
   const projectName = tl.getInput('sbomEnvironmentName', true) || '';
 
   tl.debug(`Interlynk Token: ${TOKEN}`);
+  tl.debug(`ENDPOINT: ${ENDPOINT}`);
+  tl.debug(`outputDirectory: ${outputDirectory}`);
+  tl.debug(`rawFilename: ${rawFilename}`);
+  tl.debug(`outputFormat: ${outputFormat}`);
+  tl.debug(`normalizedFilename: ${normalizedFilename}`);
+  tl.debug(`filePath: ${filePath}`);
+  tl.debug(`projectGroupName: ${projectGroupName}`);
+  tl.debug(`projectName: ${projectName}`);
 
   if (!fs.existsSync(filePath)) {
     tl.debug(`SBOM file not found at ${filePath}, skipping upload.`);
@@ -155,6 +163,10 @@ export async function getSbomStatusByNames(opts: { tries?: number; delayMs?: num
   const versionName = tl.getInput("setVersion", true)!;
 
   tl.debug(`Interlynk Token: ${TOKEN}`);
+  tl.debug(`ENDPOINT: ${ENDPOINT}`);
+  tl.debug(`projectGroupName: ${projectGroupName}`);
+  tl.debug(`projectName: ${projectName}`);
+  tl.debug(`versionName: ${versionName}`);
 
   if (!TOKEN) {
     tl.setResult(tl.TaskResult.Failed, "INTERLYNK_SECURITY_TOKEN not provided; skipping download");
@@ -253,6 +265,15 @@ export async function downloadSBOM(): Promise<string | undefined> {
   const outputDirectory = tl.getPathInput('outputDirectory', true, false)!;
 
   tl.debug(`Interlynk Token: ${TOKEN}`);
+  tl.debug(`ENDPOINT: ${ENDPOINT}`);
+  tl.debug(`projectGroupName: ${projectGroupName}`);
+  tl.debug(`projectName: ${projectName}`);
+  tl.debug(`versionName: ${versionName}`);
+  tl.debug(`includeVulnsInput: ${includeVulnsInput}`);
+  tl.debug(`rawFilename: ${rawFilename}`);
+  tl.debug(`outputFormat: ${outputFormat}`);
+  tl.debug(`interlynkDownloadFilename: ${interlynkDownloadFilename}`);
+  tl.debug(`outputDirectory: ${outputDirectory}`);
 
   // Convert safely into a boolean OR undefined if not provided
   let includeVulns: boolean | undefined = undefined;
