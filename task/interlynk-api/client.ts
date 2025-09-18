@@ -169,18 +169,18 @@ export async function getSbomStatusByNames(opts: { tries?: number; delayMs?: num
   tl.debug(`versionName: ${versionName}`);
 
   if (!TOKEN) {
-    tl.setResult(tl.TaskResult.Failed, "INTERLYNK_SECURITY_TOKEN not provided; skip checking status");
+    tl.warning("INTERLYNK_SECURITY_TOKEN not provided; skip checking status");
     return undefined;
   }
   if (!ENDPOINT) {
-    tl.setResult(tl.TaskResult.Failed, "GraphQL ENDPOINT not configured");
+    tl.warning("GraphQL ENDPOINT not configured");
     return undefined;
   }
 
   const variables = {
     projectName: projectName.trim().toLowerCase(),
     projectGroupName: projectGroupName.trim(),
-    versionName: versionName.trim().toLowerCase()
+    versionName: versionName.trim()
   };
 
   tl.debug(`variables: ${JSON.stringify(variables)}`);
@@ -212,7 +212,7 @@ export async function getSbomStatusByNames(opts: { tries?: number; delayMs?: num
 
     const sbom = resp.data?.data?.sbom;
     if (!sbom) {
-      tl.setResult(tl.TaskResult.Failed, "SBOM not found with the provided names");
+      tl.warning("Cannot get SBOM status. SBOM not found with the provided variables.");
       return undefined;
     }
 
@@ -284,18 +284,18 @@ export async function downloadSBOM(): Promise<string | undefined> {
   }
 
   if (!TOKEN) {
-    tl.setResult(tl.TaskResult.Failed, "INTERLYNK_SECURITY_TOKEN not provided; skipping download");
+    tl.warning("INTERLYNK_SECURITY_TOKEN not provided; skipping download");
     return undefined;
   }
   if (!ENDPOINT) {
-    tl.setResult(tl.TaskResult.Failed, "GraphQL ENDPOINT not configured");
+    tl.warning("GraphQL ENDPOINT not configured");
     return undefined;
   }
 
   const variables = {
     projectName: projectName.trim().toLowerCase(),
     projectGroupName: projectGroupName.trim(),
-    versionName: versionName.trim().toLowerCase(),
+    versionName: versionName.trim(),
     includeVulns: includeVulns,
   };
 
@@ -357,9 +357,6 @@ export async function downloadSBOM(): Promise<string | undefined> {
     }
   }
 
-  tl.setResult(
-    tl.TaskResult.Failed,
-    `DownloadSBOM failed after ${attempts} attempts. SBOM may not be indexed yet.`
-  );
+  tl.warning(`DownloadSBOM failed after ${attempts} attempts. SBOM may not be indexed yet.`);
   return undefined;
 }

@@ -22,8 +22,6 @@ async function run(): Promise<void> {
     const downloadedPath = await downloadSBOM();
     if (downloadedPath) {
       await checkVulnerabilities(downloadedPath);
-    } else {
-      throw new Error("Failed to download SBOM. Cannot check vulnerabilities.");
     }
   } catch (err: unknown) {
     const msg = err instanceof Error ? err.message : String(err);

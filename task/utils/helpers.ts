@@ -118,7 +118,7 @@ export async function checkVulnerabilities(filePath: string): Promise<void> {
     tl.warning(`Found ${total} vulnerabilities: ${parts.join(", ")}, in ${sbomName}`);
   } catch (err) {
     tl.error(`Error reading or parsing JSON file: ${err instanceof Error ? err.message : String(err)}`);
-    tl.setResult(tl.TaskResult.Failed, "Failed to check vulnerabilities.");
+    tl.warning("Failed to check vulnerabilities.");
   }
 }
 
