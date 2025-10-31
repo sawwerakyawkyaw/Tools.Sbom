@@ -10,7 +10,7 @@ import * as os from "os";
 import * as path from "path";
 import * as tl from "azure-pipelines-task-lib/task";
 
-export async function installDotnetCycloneDX(version: string = "3.0.8"): Promise<void> {
+export async function installDotnetCycloneDX(version: string = "5.5.0"): Promise<void> {
   // 1) Ensure dotnet is available first
   const dotnetPath = tl.which("dotnet", false);
   if (!dotnetPath) {
@@ -58,8 +58,7 @@ export async function installDotnetCycloneDX(version: string = "3.0.8"): Promise
     } catch (err) {
       lastErr = err;
       tl.warning(
-        `CycloneDX install attempt ${attempt} failed: ${
-          err instanceof Error ? err.message : String(err)
+        `CycloneDX install attempt ${attempt} failed: ${err instanceof Error ? err.message : String(err)
         }`
       );
       if (attempt < attempts) tl.debug("Retrying installation…");
@@ -67,8 +66,7 @@ export async function installDotnetCycloneDX(version: string = "3.0.8"): Promise
   }
 
   throw new Error(
-    `Failed to install CycloneDX global tool after ${attempts} attempts. ${
-      lastErr instanceof Error ? lastErr.message : String(lastErr)
+    `Failed to install CycloneDX global tool after ${attempts} attempts. ${lastErr instanceof Error ? lastErr.message : String(lastErr)
     }`
   );
 }
