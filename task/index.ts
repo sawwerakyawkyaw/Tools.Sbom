@@ -4,13 +4,14 @@ import * as tl from 'azure-pipelines-task-lib/task';
 import { installDotnetCycloneDX } from "./dotnet-cyclonedx/installer";
 import { buildArgsFromInputs } from "./dotnet-cyclonedx/buildArgsFromInput";
 import { uploadSbom, downloadSBOM, getSbomStatusByNames } from "./interlynk-api/client";
-import { checkVulnerabilities } from './utils/helpers';
+import { checkVulnerabilities, addNumbers } from './utils/helpers';
 
 async function run(): Promise<void> {
   try {
     await installDotnetCycloneDX();
     const args = await buildArgsFromInputs();
     console.log(args);
+    console.log(`2 + 3 = ${addNumbers(2, 3)}`);
 
     const code = await tl.exec('dotnet-CycloneDX', args, { failOnStdErr: false });
     if (code !== 0) {
