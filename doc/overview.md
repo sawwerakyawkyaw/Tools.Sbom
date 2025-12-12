@@ -1,8 +1,4 @@
-<p align="center">
-  <img src="doc/sbom-generator-icon.png" alt="SBOM Generator Icon" width="200"/>
-</p>
-
-<h1 align="center">Tools.Sbom</h1>
+# Tools.Sbom
 
 This custom Azure Pipelines task extension automates the generation and upload of Software Bill of Materials (SBOM) for .NET projects. It leverages the CycloneDX .NET tool to produce SBOMs and securely uploads them to Interlynk, a SBOM Automation Platform.
 
